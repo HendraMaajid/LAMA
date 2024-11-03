@@ -99,14 +99,6 @@ export const environment = {
 };
 ```
 
-## 🤝 Kontribusi
-
-1. Fork repository ini
-2. Buat branch baru (`git checkout -b feature/AmazingFeature`)
-3. Commit perubahan Anda (`git commit -m 'Add some AmazingFeature'`)
-4. Push ke branch (`git push origin feature/AmazingFeature`)
-5. Buat Pull Request
-
 ## 📝 Lisensi
 
 Distributed under the MIT License. Lihat `LICENSE` untuk informasi lebih lanjut.

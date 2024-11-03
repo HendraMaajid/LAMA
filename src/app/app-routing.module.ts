@@ -18,6 +18,10 @@ const routes: Routes = [
   {
   path: 'anime/:id',
     loadChildren: () => import('./pages/anime-detail/anime-detail.module').then(m => m.AnimeDetailPageModule)
+  },
+  {
+    path: 'manga',
+    loadChildren: () => import('./manga/manga.module').then( m => m.MangaPageModule)
   }
 ];
 

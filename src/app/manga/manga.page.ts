@@ -1,17 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AnimeService } from '../services/anime.service';
+import { MangaService } from '../services/manga.service';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-
 @Component({
-  selector: 'app-anime',
-  templateUrl: './anime.page.html',
-  styleUrls: ['./anime.page.scss'],
+  selector: 'app-manga',
+  templateUrl: './manga.page.html',
+  styleUrls: ['./manga.page.scss'],
 })
-
-export class AnimePage implements OnInit {
-animeList: any[] = [];
+export class MangaPage implements OnInit {
+mangaList: any[] = [];
   isLoading: boolean = false;
   error: string = '';
   
@@ -19,7 +17,7 @@ animeList: any[] = [];
   private searchSubscription?: Subscription;
 
   constructor(
-    private animeService: AnimeService,
+    private mangaService: MangaService,
     private router: Router
   ) { }
 
@@ -45,15 +43,15 @@ animeList: any[] = [];
     });
   }
   
-  goToAnimeDetail(animeId: number) {
-    this.router.navigate(['/anime', animeId]);
+  goToMangaDetail(mangaId: number) {
+    this.router.navigate(['/manga', mangaId]);
   }
 
   loadPopularAnime(): void {
     this.isLoading = true;
-    this.animeService.getSeasonsAnime().subscribe({
+    this.mangaService.getPopularManga().subscribe({
       next: (response) => {
-        this.animeList = response.data;
+        this.mangaList = response.data;
         this.isLoading = false;
       },
       error: (err: Error) => {
@@ -72,9 +70,9 @@ animeList: any[] = [];
 
   private performSearch(query: string): void {
     this.isLoading = true;
-    this.animeService.searchAnime(query).subscribe({
+    this.mangaService.searchManga(query).subscribe({
       next: (response) => {
-        this.animeList = response.data;
+        this.mangaList = response.data;
         this.isLoading = false;
       },
       error: (err: Error) => {

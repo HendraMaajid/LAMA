@@ -59,7 +59,7 @@ export class AnimeService {
 
   constructor(private http: HttpClient) { }
 
-  getPopularAnime(): Observable<any> {
+  getSeasonsAnime(): Observable<any> {
     return this.http.get(`${this.baseUrl}/seasons/now`);
   }
 

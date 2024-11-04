@@ -1,0 +1,84 @@
+// src/app/pages/anime-detail/anime-detail.page.scss
+.anime-header {
+    position: relative;
+    background: rgba(33, 33, 33, 0.9);
+
+    .cover-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .basic-info {
+        background: rgba(33, 33, 33, 0.9);
+        padding: 16px;
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        p {
+            margin: 8px 0;
+        }
+    }
+}
+
+ion-segment {
+    padding: 8px;
+}
+
+ion-chip {
+    margin: 4px;
+}
+
+.character-grid {
+    padding: 10px;
+}
+
+.character-card {
+    margin: 8px;
+    height: 100%;
+}
+
+.image-container {
+    width: 100%;
+    aspect-ratio:3/4;
+    overflow: hidden;
+    position: relative;
+}
+
+.character-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+
+.char-name {
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+ion-card-header {
+    padding: 10px;
+}
+
+ion-card-content {
+    padding: 10px;
+    font-size: 14px;
+}
+
+@media (max-width: 576px) {
+    .char-name {
+        font-size: 14px;
+    }
+
+    ion-card-content {
+        font-size: 12px;
+    }
+}

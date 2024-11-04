@@ -20,10 +20,29 @@ interface MangaDetail {
     };
     synopsis: string;
     background: string;
-    genres: Array<{
+    authors: Array<{
       name: string;
     }>;
+    genres: Array<{
+      name: string;
+      type: string;
+    }>;
   };
+}
+
+interface CharactersResponse {
+  data: Array<{
+    character: {
+      mal_id: number;
+      name: string;
+      images: {
+        jpg: {
+          image_url: string;
+        }
+      };
+    };
+    role: string;
+  }>;
 }
 
 @Injectable({
@@ -40,5 +59,13 @@ export class MangaService {
 
   searchManga(query: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/manga?q=${query}`);
+  }
+
+  getMangaDetails(id: number): Observable<any> {
+    return this.http.get<MangaDetail>(`${this.baseUrl}/manga/${id}/full`);
+  }
+
+  getMangaCharacters(id: number): Observable<any> {
+    return this.http.get<CharactersResponse>(`${this.baseUrl}/manga/${id}/characters`);
   }
 }

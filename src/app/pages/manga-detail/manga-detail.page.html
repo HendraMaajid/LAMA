@@ -1,0 +1,102 @@
+<!-- src/app/pages/manga-detail/manga-detail.page.html -->
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/profile"></ion-back-button>
+        </ion-buttons>
+        <ion-title>{{ mangaDetails?.title }}</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <div *ngIf="mangaDetails">
+        <!-- Cover Image and Basic Info -->
+        <div class="manga-header">
+            <img [src]="mangaDetails.images.webp.large_image_url" [alt]="mangaDetails.title" class="cover-image">
+            <div class="basic-info ion-padding">
+                <h1>{{ mangaDetails.title }}</h1>
+                <p><strong>Score:</strong> {{ mangaDetails.score }}/10</p>
+                <p><strong>Chapters:</strong> {{ mangaDetails?.chapters ?? 'Unknown'}}</p>
+                <p><strong>Status:</strong> {{ mangaDetails.status }}</p>
+                <p><strong>Published:</strong> {{ mangaDetails.published.string }}</p>
+                <p>
+                    <strong>Author: </strong>
+                    <span *ngFor="let author of mangaDetails.authors; let last = last">
+                        {{ author.name }}{{!last ? ', ' : ''}}
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Segment Controls -->
+        <ion-segment (ionChange)="segmentChanged($event)" [value]="selectedSegment">
+            <ion-segment-button value="info">
+                <ion-label>Info</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="characters">
+                <ion-label>Characters</ion-label>
+            </ion-segment-button>
+        </ion-segment>
+
+        <!-- Info Content -->
+        <div *ngIf="selectedSegment === 'info'" class="ion-padding">
+            <ion-card>
+                <ion-card-header>
+                    <ion-card-title>Synopsis</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                    {{ mangaDetails.synopsis }}
+                </ion-card-content>
+            </ion-card>
+
+            <ion-card *ngIf="mangaDetails.background">
+                <ion-card-header>
+                    <ion-card-title>Background</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                    {{ mangaDetails.background }}
+                </ion-card-content>
+            </ion-card>
+
+            <ion-card>
+                <ion-card-header>
+                    <ion-card-title>Genres</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                    <ion-chip *ngFor="let genre of mangaDetails.genres">
+                        {{ genre.name }}
+                    </ion-chip>
+                </ion-card-content>
+            </ion-card>
+
+        </div>
+
+        <!-- Characters Content -->
+        <div *ngIf="selectedSegment === 'characters'" class="ion-padding">
+            <ion-grid class="character-grid">
+                <ion-row>
+                    <ion-col size="6" *ngFor="let char of characters">
+                        <ion-card class="character-card">
+                            <div class="image-container">
+                                <img [src]="char.character.images.jpg.image_url" [alt]="char.character.name"
+                                    class="character-image">
+                            </div>
+                            <ion-card-header>
+                                <ion-card-title class="char-name">{{ char.character.name }}</ion-card-title>
+                                <ion-card-subtitle>{{ char.role }}</ion-card-subtitle>
+                            </ion-card-header>
+                            <ion-card-content *ngIf="char.voice_actors && char.voice_actors[0]">
+                                VA: {{ char.voice_actors[0].person.name }}
+                                ({{ char.voice_actors[0].language }})
+                            </ion-card-content>
+                        </ion-card>
+                    </ion-col>
+                </ion-row>
+            </ion-grid>
+        </div>
+    </div>
+
+    <ion-text color="danger" *ngIf="error">
+        <p class="ion-text-center">{{ error }}</p>
+    </ion-text>
+</ion-content>

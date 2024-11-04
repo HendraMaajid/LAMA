@@ -25,7 +25,7 @@
       <ion-label>
         <h2>{{ manga.title }}</h2>
         <p>Rating: {{ manga.score }}/10</p>
-        <p>Chapters: {{ manga.chapters }}</p>
+        <p>Chapters: {{ manga?.chapters ?? 'Unknown' }}</p>
       </ion-label>
     </ion-item>
   </ion-list>

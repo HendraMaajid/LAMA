@@ -1,5 +1,4 @@
-<!-- src/app/profile/profile.page.html -->
-
+<!-- src/app/anime/anime.page.html -->
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
@@ -11,6 +10,15 @@
     <ion-searchbar (ionInput)="onSearchInput($event)" placeholder="Ketik minimal 3 huruf untuk mencari..."
       [debounce]="500" animated="true">
     </ion-searchbar>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-select label="Filter Genre" (ionChange)="onGenreChange($event)" interface="action-sheet"
+      placeholder="Pilih Genre">
+      <ion-select-option [value]="null">Semua Genre</ion-select-option>
+      <ion-select-option *ngFor="let genre of genres" [value]="genre.mal_id">
+        {{ genre.name }} ({{ genre.count }})
+      </ion-select-option>
+    </ion-select>
   </ion-toolbar>
 </ion-header>
 
@@ -26,6 +34,11 @@
         <h2>{{ anime.title }}</h2>
         <p>Rating: {{ anime.score }}/10</p>
         <p>Episodes: {{ anime.episodes }}</p>
+        <p>
+          <ion-badge color="primary" *ngFor="let genre of anime.genres" class="ion-margin-end">
+            {{ genre.name }}
+          </ion-badge>
+        </p>
       </ion-label>
     </ion-item>
   </ion-list>
@@ -37,4 +50,24 @@
   <ion-text color="medium" *ngIf="!isLoading && animeList.length === 0">
     <p class="ion-text-center">Tidak ada hasil yang ditemukan</p>
   </ion-text>
+
+<div class="pagination-wrapper" *ngIf="totalPages > 1">
+  <ion-button class="custom-button prev-button" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+    <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+    Previous
+  </ion-button>
+
+  <span class="page-info">
+    {{currentPage}} / {{totalPages}}
+  </span>
+
+  <ion-button class="custom-button next-button" [disabled]="currentPage === totalPages"
+    (click)="changePage(currentPage + 1)">
+    Next
+    <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+  </ion-button>
+</div>
+
+
+
 </ion-content>

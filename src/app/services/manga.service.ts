@@ -1,4 +1,4 @@
-// src/app/services/anime.service.ts
+// src/app/services/manga.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin } from 'rxjs';
@@ -53,12 +53,29 @@ export class MangaService {
 
   constructor(private http: HttpClient) { }
 
-  getPopularManga(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/top/manga`);
+  getPopularManga(page: number = 1): Observable<any> {
+    return this.http.get(`${this.baseUrl}/top/manga?page=${page}`);
   }
 
-  searchManga(query: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/manga?q=${query}`);
+  // Tambahan method baru
+  getGenres(): Observable<{ data: any[] }> {
+    return this.http.get<{ data: any[] }>(`${this.baseUrl}/genres/manga`);
+  }
+
+  getManga(genreId?: number, page: number = 1): Observable<any> {
+    let url = `${this.baseUrl}/manga?page=${page}`;
+    if (genreId) {
+      url += `&genres=${genreId}`;
+    }
+    return this.http.get(url);
+  }
+
+  searchManga(query: string, genreId?: number, page: number = 1): Observable<any> {
+    let url = `${this.baseUrl}/manga?q=${query}&page=${page}`;
+    if (genreId) {
+      url += `&genres=${genreId}`;
+    }
+    return this.http.get(url);
   }
 
   getMangaDetails(id: number): Observable<any> {

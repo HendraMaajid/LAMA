@@ -1,7 +1,7 @@
 // src/app/services/manga.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin } from 'rxjs';
+import { Observable, forkJoin, map } from 'rxjs';
 
 interface MangaDetail {
   data: {
@@ -45,21 +45,47 @@ interface CharactersResponse {
   }>;
 }
 
+interface MangaGenre {
+  mal_id: number;
+  name: string;
+  count: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class MangaService {
   private baseUrl = 'https://api.jikan.moe/v4';
 
+   private excludedGenres = [
+    'Erotica',
+    'Hentai',
+    'Boys Love',
+    'Girls Love',
+    'Adult Cast',
+    'Magical Sex Shift'
+  ];
+
+
   constructor(private http: HttpClient) { }
 
   getPopularManga(page: number = 1): Observable<any> {
-    return this.http.get(`${this.baseUrl}/top/manga?page=${page}`);
+    let url = `${this.baseUrl}/top/manga?page=${page}`;
+    this.excludedGenres.forEach(genre => {
+      url += `${url.includes('?') ? '&' : '?'}genres_exclude=${this.getGenreId(genre)}`;
+    });
+    return this.http.get(url);
   }
 
   // Tambahan method baru
-  getGenres(): Observable<{ data: any[] }> {
-    return this.http.get<{ data: any[] }>(`${this.baseUrl}/genres/manga`);
+ getGenres(): Observable<{ data: MangaGenre[] }> {
+    return this.http.get<{ data: MangaGenre[] }>(`${this.baseUrl}/genres/manga`).pipe(
+      map(response => ({
+        data: response.data
+          .filter(genre => !this.excludedGenres.includes(genre.name))
+          .sort((a, b) => a.name.localeCompare(b.name)) // Mengurutkan berdasarkan abjad
+      }))
+    );
   }
 
   getManga(genreId?: number, page: number = 1): Observable<any> {
@@ -67,6 +93,9 @@ export class MangaService {
     if (genreId) {
       url += `&genres=${genreId}`;
     }
+    this.excludedGenres.forEach(genre => {
+      url += `&genres_exclude=${this.getGenreId(genre)}`;
+    });
     return this.http.get(url);
   }
 
@@ -75,6 +104,10 @@ export class MangaService {
     if (genreId) {
       url += `&genres=${genreId}`;
     }
+
+    this.excludedGenres.forEach(genre => {
+      url += `&genres_exclude=${this.getGenreId(genre)}`;
+    });
     return this.http.get(url);
   }
 
@@ -84,5 +117,17 @@ export class MangaService {
 
   getMangaCharacters(id: number): Observable<any> {
     return this.http.get<CharactersResponse>(`${this.baseUrl}/manga/${id}/characters`);
+  }
+
+   private getGenreId(genreName: string): number {
+    const genreMap: { [key: string]: number } = {
+      'Erotica' : 49,
+      'Hentai' : 12,
+      'Boys Love' : 28,
+      'Girls Love' : 26,
+      'Adult Cast' : 50,
+      'Magical Sex Shift' : 65
+    };
+    return genreMap[genreName] || 0;
   }
 }

@@ -67,8 +67,6 @@ export class AnimeService {
     'Erotica',
     'Hentai',
     'Boys Love',
-    'Yuri',
-    'Yaoi',
     'Girls Love',
     'Adult Cast',
     'Magical Sex Shift'

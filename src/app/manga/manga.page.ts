@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MangaService } from '../services/manga.service';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -23,19 +23,36 @@ export class MangaPage implements OnInit {
 
   constructor(
     private mangaService: MangaService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
-    this.loadGenres();
-    this.loadPopularManga();
+   this.route.queryParams.subscribe(params => {
+      if (params['genreId']) {
+        this.selectedGenre = parseInt(params['genreId']);
+        this.loadManga();
+      } else {
+        this.loadGenres();
+        this.loadPopularManga();
+      }
+    });
+    
     this.setupSearch();
   }
 
-  private loadGenres(): void {
+ private loadGenres(): void {
     this.mangaService.getGenres().subscribe({
       next: (response) => {
         this.genres = response.data;
+        // Jika ada selectedGenre, update UI select
+        if (this.selectedGenre) {
+          // Untuk Ionic select, kita perlu memastikan nilai terseleksi
+          const selectElement = document.querySelector('ion-select');
+          if (selectElement) {
+            (selectElement as any).value = this.selectedGenre;
+          }
+        }
       },
       error: (err) => {
         console.error('Error loading genres:', err);

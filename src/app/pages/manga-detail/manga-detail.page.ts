@@ -1,6 +1,6 @@
 // src/app/pages/manga-detail/manga-detail.page.ts
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MangaService } from '../../services/manga.service';
 import { LoadingController, ModalController } from '@ionic/angular';
 
@@ -21,8 +21,8 @@ export class MangaDetailPage implements OnInit {
  constructor(
     private route: ActivatedRoute,
     private mangaService: MangaService,
+    private router: Router,  
     private loadingController: LoadingController,
-    private modalController: ModalController  // Add this
   ) { }
 
   ngOnInit() {
@@ -67,5 +67,16 @@ export class MangaDetailPage implements OnInit {
 
   segmentChanged(event: any) {
     this.selectedSegment = event.detail.value;
+  }
+
+  
+  navigateToAnimeList(genre: any) {
+    // Navigasi ke halaman manga list dengan parameter genre
+    this.router.navigate(['/manga'], {
+      queryParams: {
+        genreId: genre.mal_id,
+        genreName: genre.name
+      }
+    });
   }
 }

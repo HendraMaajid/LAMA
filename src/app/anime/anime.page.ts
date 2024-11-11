@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AnimeService } from '../services/anime.service';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -24,12 +24,21 @@ export class AnimePage implements OnInit, OnDestroy {
 
   constructor(
     private animeService: AnimeService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute // Tambahkan ini
   ) {}
 
   ngOnInit(): void {
-    this.loadGenres();
-    this.loadPopularAnime();
+    this.route.queryParams.subscribe(params => {
+      if (params['genreId']) {
+        this.selectedGenre = parseInt(params['genreId']);
+        this.loadAnime();
+      } else {
+        this.loadGenres();
+        this.loadPopularAnime();
+      }
+    });
+    
     this.setupSearch();
   }
 
@@ -57,6 +66,14 @@ export class AnimePage implements OnInit, OnDestroy {
     this.animeService.getGenres().subscribe({
       next: (response) => {
         this.genres = response.data;
+        // Jika ada selectedGenre, update UI select
+        if (this.selectedGenre) {
+          // Untuk Ionic select, kita perlu memastikan nilai terseleksi
+          const selectElement = document.querySelector('ion-select');
+          if (selectElement) {
+            (selectElement as any).value = this.selectedGenre;
+          }
+        }
       },
       error: (err) => {
         console.error('Error loading genres:', err);

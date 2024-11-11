@@ -1,6 +1,6 @@
 // src/app/pages/anime-detail/anime-detail.page.ts
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AnimeService } from '../../services/anime.service';
 import { LoadingController, ModalController } from '@ionic/angular';
 import { EpisodeDetailComponent } from './episode-detail.component';
@@ -21,6 +21,7 @@ export class AnimeDetailPage implements OnInit {
  constructor(
     private route: ActivatedRoute,
     private animeService: AnimeService,
+    private router: Router,  // Tambahkan ini
     private loadingController: LoadingController,
     private modalController: ModalController  // Add this
   ) { }
@@ -104,5 +105,15 @@ export class AnimeDetailPage implements OnInit {
 
   segmentChanged(event: any) {
     this.selectedSegment = event.detail.value;
+  }
+
+  navigateToAnimeList(genre: any) {
+    // Navigasi ke halaman anime list dengan parameter genre
+    this.router.navigate(['/anime'], {
+      queryParams: {
+        genreId: genre.mal_id,
+        genreName: genre.name
+      }
+    });
   }
 }

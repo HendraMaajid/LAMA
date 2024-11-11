@@ -63,7 +63,7 @@
                     <ion-card-title>Genres</ion-card-title>
                 </ion-card-header>
                 <ion-card-content>
-                    <ion-chip *ngFor="let genre of mangaDetails.genres">
+                    <ion-chip *ngFor="let genre of mangaDetails.genres" (click)="navigateToAnimeList(genre)" class="genre-chip">
                         {{ genre.name }}
                     </ion-chip>
                 </ion-card-content>

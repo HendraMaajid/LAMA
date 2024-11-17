@@ -26,7 +26,13 @@ const routes: Routes = [
   {
     path: 'manga/:id',
     loadChildren: () => import('./pages/manga-detail/manga-detail.module').then(m => m.MangaDetailModule)
-  }
+  },
+  {
+    path: 'news',
+    loadChildren: () => import('./pages/news/news.module').then( m => m.NewsPageModule)
+  },
+
+
 ];
 
 @NgModule({

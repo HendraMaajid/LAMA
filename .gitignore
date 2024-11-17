@@ -34,6 +34,10 @@ log.txt
 npm-debug.log
 yarn-error.log
 
+# Environment files
+src/environments/environment.ts
+src/environments/environment.prod.ts
+
 # IDEs and editors
 .idea/
 .project
@@ -64,6 +68,7 @@ yarn-error.log
 /libpeerconnection.log
 testem.log
 /typings
+
 
 # System files
 .DS_Store

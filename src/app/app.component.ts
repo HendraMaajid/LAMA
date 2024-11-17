@@ -10,6 +10,7 @@ export class AppComponent {
     { title: 'Anime', url: '/anime', icon: 'play' },
     { title: 'Manga', url: '/manga', icon: 'book' },
     { title: 'Bookmark', url: '/folder/bookmark', icon: 'bookmark' },
+    { title: 'News', url: '/news', icon: 'newspaper' },
   ];
   constructor() {}
 }

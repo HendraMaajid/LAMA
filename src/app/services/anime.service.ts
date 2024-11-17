@@ -82,6 +82,14 @@ export class AnimeService {
     });
     return this.http.get(url);
   }
+  getSeasonsAnime(): Observable<any> {
+    let url = `${this.baseUrl}/seasons/now`;
+    // Tambahkan parameter untuk mengecualikan genre yang tidak diinginkan
+    this.excludedGenres.forEach(genre => {
+      url += `${url.includes('?') ? '&' : '?'}genres_exclude=${this.getGenreId(genre)}`;
+    });
+    return this.http.get(url);
+  }
   getAnimeDetails(id: number): Observable<AnimeDetail> {
     return this.http.get<AnimeDetail>(`${this.baseUrl}/anime/${id}/full`);
   }

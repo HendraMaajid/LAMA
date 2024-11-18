@@ -6,13 +6,14 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-news',
+  styleUrls: ['./news.page.scss'],
   template: `
     <ion-header>
       <ion-toolbar>
       <ion-buttons slot="start">
         <ion-menu-button></ion-menu-button>
       </ion-buttons>
-        <ion-title>News Management</ion-title>
+        <ion-title>News</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="openNewsForm()">
             <ion-icon name="add"></ion-icon>
@@ -24,27 +25,19 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
     <ion-content>
       <!-- List Berita -->
       <ion-list>
-        <ion-item-sliding *ngFor="let news of newsList">
-          <ion-item>
-            <ion-thumbnail slot="start">
-              <img [src]="news.imageUrl" alt="News thumbnail">
-            </ion-thumbnail>
-            <ion-label>
-              <h2>{{ news.title }}</h2>
-              <p>{{ news.category }}</p>
-              <p>{{ news.date | date }}</p>
-            </ion-label>
-          </ion-item>
+          <ion-card *ngFor="let news of newsList" >
+            <img alt="Silhouette of mountains" src="{{news.imageUrl}}" />
+            <ion-card-header>
+              <ion-card-title>{{ news.title }}</ion-card-title>
+              <ion-card-subtitle>{{ news.category }}</ion-card-subtitle>
+            </ion-card-header>
 
-          <ion-item-options side="end">
-            <ion-item-option color="primary" (click)="openNewsForm(news)">
-              <ion-icon name="create" slot="icon-only"></ion-icon>
-            </ion-item-option>
-            <ion-item-option color="danger" (click)="confirmDelete(news)">
-              <ion-icon name="trash" slot="icon-only"></ion-icon>
-            </ion-item-option>
-          </ion-item-options>
-        </ion-item-sliding>
+            <ion-card-content>
+              <p>{{ news.content }}</p>
+            </ion-card-content>
+            <ion-button fill="clear" class="action-button" color="primary" (click)="openNewsForm(news)">Edit</ion-button>
+            <ion-button fill="clear" class="action-button" color="danger" (click)="confirmDelete(news)">Hapus</ion-button>
+          </ion-card>
       </ion-list>
 
       <!-- Form Modal -->

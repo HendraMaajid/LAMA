@@ -1,24 +1,20 @@
 // news.module.ts
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule, Routes } from '@angular/router';
+import { QuillModule } from 'ngx-quill';
+import { NewsPageRoutingModule } from './news-routing.module';
 import { NewsPage } from './news.page';
-
-const routes: Routes = [
-  {
-    path: '',
-    component: NewsPage
-  }
-];
 
 @NgModule({
   imports: [
     CommonModule,
-    IonicModule,
+    FormsModule,
     ReactiveFormsModule,
-    RouterModule.forChild(routes)
+    IonicModule,
+    NewsPageRoutingModule,
+    QuillModule.forRoot() // Add this line
   ],
   declarations: [NewsPage]
 })

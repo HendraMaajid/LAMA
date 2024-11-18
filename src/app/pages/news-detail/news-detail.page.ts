@@ -31,8 +31,8 @@ import { LoadingController } from '@ionic/angular';
         </ion-card-header>
 
         <ion-card-content>
-          <div class="news-content">
-            {{ newsItem.content }}
+          <div class="news-content" [innerHTML]="newsItem.content">
+           
           </div>
         </ion-card-content>
       </ion-card>

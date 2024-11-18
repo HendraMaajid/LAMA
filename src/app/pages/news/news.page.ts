@@ -4,7 +4,7 @@ import { NewsService, NewsItem } from '../../services/news.service';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-
+import { SupabaseService } from '../../services/supabase.service';
 @Component({
   selector: 'app-news',
   styleUrls: ['./news.page.scss'],
@@ -68,8 +68,15 @@ import { Router } from '@angular/router';
               </ion-item>
 
               <ion-item>
-                <ion-label position="stacked">Image URL</ion-label>
-                <ion-input formControlName="imageUrl" type="text"></ion-input>
+                <ion-label position="stacked">Image</ion-label>
+                <input type="file" 
+                      accept="image/*" 
+                      (change)="onFileSelected($event)"
+                >
+                <img *ngIf="newsForm.get('imagePreview')?.value" 
+                    [src]="newsForm.get('imagePreview')?.value" 
+                    style="max-width: 200px;"
+                >
               </ion-item>
 
               <ion-item>
@@ -95,6 +102,7 @@ export class NewsPage implements OnInit {
   newsList: NewsItem[] = [];
   newsForm: FormGroup;
   isModalOpen = false;
+  selectedFile: File | null = null;
   editingNews: NewsItem | null = null;
 
   // Konfigurasi Quill Editor
@@ -119,19 +127,35 @@ export class NewsPage implements OnInit {
     private newsService: NewsService,
     private fb: FormBuilder,
     private alertController: AlertController,
+    private supabaseService: SupabaseService,
     private loadingController: LoadingController,
     private router: Router
   ) {
     this.newsForm = this.fb.group({
       title: ['', Validators.required],
       content: ['', Validators.required],
-      imageUrl: ['', Validators.required],
+      imageUrl: [''],
+      imagePreview: [''],  // Tambahkan ini
       category: ['', Validators.required]
     });
   }
 
   ngOnInit() {
     this.loadNews();
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.newsForm.patchValue({
+          imagePreview: e.target.result
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
   loadNews() {
@@ -150,14 +174,20 @@ export class NewsPage implements OnInit {
   }
 
   async openNewsForm(news?: NewsItem) {
-    this.editingNews = news || null;
-    if (news) {
-      this.newsForm.patchValue(news);
-    } else {
-      this.newsForm.reset();
-    }
-    this.isModalOpen = true;
+  this.editingNews = news || null;
+  if (news) {
+    this.newsForm.patchValue({
+      ...news,
+      imagePreview: news.imageUrl || '' // Add this line to set preview
+    });
+  } else {
+    this.newsForm.reset();
+    this.newsForm.patchValue({
+      imagePreview: '' // Reset preview when adding new
+    });
   }
+  this.isModalOpen = true;
+}
 
   closeNewsForm() {
     this.isModalOpen = false;
@@ -166,32 +196,56 @@ export class NewsPage implements OnInit {
   }
 
   async saveNews() {
-    if (this.newsForm.valid) {
-      const loading = await this.loadingController.create({
-        message: 'Saving...'
-      });
-      await loading.present();
+  if (this.newsForm.valid) {
+    const loading = await this.loadingController.create({
+      message: 'Saving...'
+    });
+    await loading.present();
 
-      try {
-        if (this.editingNews && this.editingNews.id) {
-          await this.newsService.updateNews(this.editingNews.id, this.newsForm.value);
-        } else {
-          await this.newsService.addNews(this.newsForm.value);
+    try {
+      let imageUrl = '';
+
+      // Upload image to Supabase if a file is selected
+      if (this.selectedFile) {
+        imageUrl = await this.supabaseService.uploadImage(this.selectedFile);
+        
+        // Check if upload was successful
+        if (!imageUrl) {
+          throw new Error('Image upload failed');
         }
-        this.closeNewsForm();
-      } catch (error) {
-        console.error('Error saving news:', error);
-        const alert = await this.alertController.create({
-          header: 'Error',
-          message: 'Failed to save news. Please try again.',
-          buttons: ['OK']
-        });
-        await alert.present();
-      } finally {
-        await loading.dismiss();
       }
+
+      const newsData = {
+        ...this.newsForm.value,
+        imageUrl: imageUrl, // Use the Supabase image URL
+        date: new Date() // Ensure date is added for Firebase
+      };
+
+      // Remove imagePreview before saving to Firestore
+      delete newsData.imagePreview;
+
+      if (this.editingNews && this.editingNews.id) {
+        await this.newsService.updateNews(this.editingNews.id, newsData);
+      } else {
+        await this.newsService.addNews(newsData);
+      }
+      
+      this.selectedFile = null;
+      this.closeNewsForm();
+      this.loadNews(); // Refresh the news list
+    } catch (error) {
+      console.error('Error saving news:', error);
+      const alert = await this.alertController.create({
+        header: 'Error',
+        message: 'Failed to save news. Please try again.',
+        buttons: ['OK']
+      });
+      await alert.present();
+    } finally {
+      await loading.dismiss();
     }
   }
+}
 
   async confirmDelete(news: NewsItem) {
     const alert = await this.alertController.create({

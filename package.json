@@ -28,6 +28,7 @@
     "@capacitor/keyboard": "6.0.2",
     "@capacitor/status-bar": "6.0.1",
     "@ionic/angular": "^8.0.0",
+    "@supabase/supabase-js": "^2.46.1",
     "firebase": "^10.14.1",
     "ionicons": "^7.0.0",
     "ngx-quill": "^26.0.10",

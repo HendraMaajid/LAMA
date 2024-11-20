@@ -1,10 +1,11 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { AuthGuard } from './auth.guard';
 
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'anime',
+    redirectTo: 'landing',
     pathMatch: 'full'
   },
   {
@@ -29,11 +30,28 @@ const routes: Routes = [
   },
   {
     path: 'news',
+    canActivate: [AuthGuard],
     loadChildren: () => import('./pages/news/news.module').then( m => m.NewsPageModule)
   },
   {
     path: 'news/:id',
     loadChildren: () => import('./pages/news-detail/news-detail.module').then( m => m.NewsDetailPageModule)
+  },
+  {
+    path: 'login',
+    loadChildren: () => import('./pages/login/login.module').then( m => m.LoginPageModule)
+  },
+  {
+    path: 'signup',
+    loadChildren: () => import('./pages/signup/signup.module').then( m => m.SignupPageModule)
+  },
+  {
+    path: 'landing',
+    loadChildren: () => import('./pages/landing/landing.module').then( m => m.LandingPageModule)
+  },
+  {
+    path: 'reset-password',
+    loadChildren: () => import('./pages/reset-password/reset-password.module').then( m => m.ResetPasswordPageModule)
   },
 
 

@@ -1,0 +1,50 @@
+<ion-content [fullscreen]="true" class="login-page">
+  <!-- Background -->
+  <div class="background-image"></div>
+
+  <!-- Login Container -->
+  <div class="login-container">
+    <h2>Login</h2>
+    <p>Welcome back! Please login to your account.</p>
+
+    <!-- Form Start -->
+    <form [formGroup]="loginForm">
+      <!-- Email Input -->
+      <ion-item class="floating-label-item">
+        <ion-label position="stacked">Email</ion-label>
+        <ion-input formControlName="email" placeholder="Masukan email" type="email"></ion-input>
+      </ion-item>
+      <div *ngIf="loginForm.controls['email'].touched && loginForm.controls['email'].invalid">
+        <ion-text *ngIf="loginForm.controls['email'].errors?.['required']">
+          Email harus diisi
+        </ion-text>
+        <ion-text *ngIf="loginForm.controls['email'].errors?.['pattern']">
+          Format harus sesuai
+        </ion-text>
+      </div>
+
+      <!-- Password Input -->
+      <ion-item class="floating-label-item">
+        <ion-label position="stacked">Password</ion-label>
+        <ion-input formControlName="password" placeholder="Masukan password" type="password"></ion-input>
+      </ion-item>
+      <div *ngIf="loginForm.controls['password'].touched && loginForm.controls['password'].invalid">
+        <ion-text *ngIf="loginForm.controls['password'].errors?.['required']">
+          Password harus diisi
+        </ion-text>
+        <ion-text *ngIf="loginForm.controls['password'].errors?.['pattern']">
+          Password minimal memiliki 1 karakter, 1 kapital, 1 angka, dan 8 digit
+        </ion-text>
+      </div>
+
+      <!-- Login Button -->
+      <ion-button expand="block" type="submit" (click)="login()">Login</ion-button>
+    </form>
+
+    <!-- Links -->
+    <div class="links">
+      <a [routerLink]="['/reset-password']">Forgot Password?</a>
+      <a [routerLink]="['/signup']">Sign Up</a>
+    </div>
+  </div>
+</ion-content>

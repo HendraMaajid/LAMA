@@ -51,7 +51,7 @@ import { SupabaseService } from '../../services/supabase.service';
             </ion-toolbar>
           </ion-header>
 
-          <ion-content>
+          <ion-content [fullscreen]="true">
             <form [formGroup]="newsForm" (ngSubmit)="saveNews()">
               <ion-item>
                 <ion-label position="stacked">Title</ion-label>
@@ -60,23 +60,13 @@ import { SupabaseService } from '../../services/supabase.service';
 
               <ion-item>
                 <ion-label position="stacked">Content</ion-label>
-                <quill-editor
-                  formControlName="content"
-                  [style]="{height: '200px'}"
-                  [modules]="modules"
-                ></quill-editor>
+                <quill-editor formControlName="content" [style]="{height: '450px'}" [modules]="modules"></quill-editor>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Image</ion-label>
-                <input type="file" 
-                      accept="image/*" 
-                      (change)="onFileSelected($event)"
-                >
-                <img *ngIf="newsForm.get('imagePreview')?.value" 
-                    [src]="newsForm.get('imagePreview')?.value" 
-                    style="max-width: 200px;"
-                >
+                <input type="file" accept="image/*" (change)="onFileSelected($event)">
+                <img *ngIf="newsForm.get('imagePreview')?.value" [src]="newsForm.get('imagePreview')?.value" style="max-width: 200px;">
               </ion-item>
 
               <ion-item>

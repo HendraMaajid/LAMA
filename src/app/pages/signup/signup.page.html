@@ -1,0 +1,64 @@
+<ion-content [fullscreen]="true" class="signup-page">
+  <div class="background-image"></div>
+  <div class="signup-container">
+    <h2>Sign Up</h2>
+    <p>Create an account to get started.</p>
+
+    <form [formGroup]="regForm" (ngSubmit)="signUp()">
+      <!-- Name Input -->
+      <ion-item class="floating-label-item">
+        <ion-label position="floating">Nama</ion-label>
+        <ion-input formControlName="fullname" type="text" required>
+        </ion-input>
+      </ion-item>
+      <div class="error-message" *ngIf="errorControl['fullname'].touched && errorControl['fullname'].invalid">
+        <ion-text color="danger" *ngIf="errorControl['fullname'].errors?.['required']">
+          Nama harus diisi
+        </ion-text>
+        <ion-text color="danger" *ngIf="errorControl['fullname'].errors?.['minlength']">
+          Nama minimal 3 karakter
+        </ion-text>
+      </div>
+
+      <!-- Email Input -->
+      <ion-item class="floating-label-item">
+        <ion-label position="floating">Email</ion-label>
+        <ion-input formControlName="email" type="email" required>
+        </ion-input>
+      </ion-item>
+      <div class="error-message" *ngIf="errorControl['email'].touched && errorControl['email'].invalid">
+        <ion-text color="danger" *ngIf="errorControl['email'].errors?.['required']">
+          Email harus diisi
+        </ion-text>
+        <ion-text color="danger"
+          *ngIf="errorControl['email'].errors?.['pattern'] || errorControl['email'].errors?.['email']">
+          Format email tidak valid
+        </ion-text>
+      </div>
+
+      <!-- Password Input -->
+      <ion-item class="floating-label-item">
+        <ion-label position="floating">Password</ion-label>
+        <ion-input formControlName="password" type="password" required>
+        </ion-input>
+      </ion-item>
+      <div class="error-message" *ngIf="errorControl['password'].touched && errorControl['password'].invalid">
+        <ion-text color="danger" *ngIf="errorControl['password'].errors?.['required']">
+          Password harus diisi
+        </ion-text>
+        <ion-text color="danger" *ngIf="errorControl['password'].errors?.['pattern']">
+          Password harus memiliki minimal 8 karakter, 1 huruf kecil, 1 huruf besar, 1 angka, dan 1 karakter spesial
+        </ion-text>
+      </div>
+
+      <!-- Sign Up Button -->
+      <ion-button type="submit" expand="block">
+        Sign Up
+      </ion-button>
+    </form>
+
+    <div class="links">
+      <a [routerLink]="['/login']">Already have an account? Login</a>
+    </div>
+  </div>
+</ion-content>

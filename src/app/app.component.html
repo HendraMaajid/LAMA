@@ -1,13 +1,20 @@
+<!-- app.component.html -->
 <ion-app>
   <ion-split-pane contentId="main-content">
     <ion-menu contentId="main-content" type="overlay">
       <ion-content>
         <ion-list id="inbox-list">
-          <ion-list-header>Inbox</ion-list-header>
-          <ion-note>hi&#64;ionicframework.com</ion-note>
+          <!-- Updated User Profile Header -->
+          <div class="user-profile-header">
+            <ion-avatar class="user-avatar">
+              <img [src]="getUserPhotoURL()" alt="User profile">
+            </ion-avatar>
+            <ion-list-header>{{ getUserDisplayName() }}</ion-list-header>
+            <ion-note>{{ userProfile?.email }}</ion-note>
+          </div>
 
-          <!-- Daftar Menu -->
-          <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages; let i = index">
+          <!-- Rest of the menu items remain the same -->
+          <ion-menu-toggle auto-hide="true" *ngFor="let p of appPages">
             <ion-item routerDirection="root" [routerLink]="[p.url]" lines="none" detail="false"
               routerLinkActive="selected">
               <ion-icon aria-hidden="true" slot="start" [ios]="p.icon + '-outline'" [md]="p.icon + '-sharp'"></ion-icon>
@@ -15,11 +22,30 @@
             </ion-item>
           </ion-menu-toggle>
 
-          <!-- Tombol Logout -->
-          <ion-item (click)="confirmLogout()" lines="none" detail="false">
-            <ion-icon aria-hidden="true" slot="start" name="log-out-outline"></ion-icon>
-            <ion-label>Logout</ion-label>
-          </ion-item>
+          <!-- Login Button when not authenticated -->
+          <ng-container *ngIf="!isLoggedIn">
+            <ion-button expand="full" routerLink="/login" color="primary">
+              <ion-icon name="log-in-outline" slot="start"></ion-icon>
+              Login
+            </ion-button>
+          </ng-container>
+
+          <!-- Authenticated Menu -->
+          <ng-container *ngIf="isLoggedIn">
+            <ion-menu-toggle auto-hide="false" *ngFor="let p of authenticatedPages">
+              <ion-item routerDirection="root" [routerLink]="[p.url]" lines="none" detail="false"
+                routerLinkActive="selected">
+                <ion-icon aria-hidden="true" slot="start" [ios]="p.icon + '-outline'"
+                  [md]="p.icon + '-sharp'"></ion-icon>
+                <ion-label>{{ p.title }}</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+
+            <ion-item (click)="confirmLogout()" lines="none" detail="false">
+              <ion-icon aria-hidden="true" slot="start" name="log-out-outline"></ion-icon>
+              <ion-label>Logout</ion-label>
+            </ion-item>
+          </ng-container>
         </ion-list>
       </ion-content>
     </ion-menu>

@@ -52,7 +52,12 @@ ion-menu.md ion-item {
 ion-menu.md ion-item.selected {
   --background: rgba(var(--ion-color-primary-rgb), 0.14);
 }
-
+ion-avatar.user-avatar {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+  border: 2px solid var(--ion-color-primary);
+}
 ion-menu.md ion-item.selected ion-icon {
   color: var(--ion-color-primary);
 }

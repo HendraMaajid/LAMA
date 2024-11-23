@@ -57,7 +57,7 @@ export class SignupPage implements OnInit {
     return this.regForm.controls;
   }
 
-  async signUp() {
+   async signUp() {
     if (!this.regForm.valid) {
       const alert = await this.alertController.create({
         header: 'Form Tidak Valid',
@@ -74,8 +74,9 @@ export class SignupPage implements OnInit {
     await loading.present();
 
     try {
-      const { email, password } = this.regForm.value;
-      const user = await this.authService.registerUser(email, password);
+      const { email, password, fullname } = this.regForm.value;
+      // Kirim fullname ke registerUser
+      const user = await this.authService.registerUser(email, password, fullname);
 
       if (user) {
         await this.router.navigate(['/anime']);
@@ -84,7 +85,6 @@ export class SignupPage implements OnInit {
       console.error('Registration error:', error);
       let errorMessage = 'Terjadi kesalahan saat mendaftar';
 
-      // Type guard to check if error is an object with a 'code' property
       if (error instanceof Error && 'code' in error) {
         const authError = error as { code: string };
 

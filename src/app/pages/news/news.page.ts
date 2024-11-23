@@ -186,56 +186,59 @@ export class NewsPage implements OnInit {
   }
 
   async saveNews() {
-  if (this.newsForm.valid) {
-    const loading = await this.loadingController.create({
-      message: 'Saving...'
-    });
-    await loading.present();
-
-    try {
-      let imageUrl = '';
-
-      // Upload image to Supabase if a file is selected
-      if (this.selectedFile) {
-        imageUrl = await this.supabaseService.uploadImage(this.selectedFile);
-        
-        // Check if upload was successful
-        if (!imageUrl) {
-          throw new Error('Image upload failed');
-        }
-      }
-
-      const newsData = {
-        ...this.newsForm.value,
-        imageUrl: imageUrl, // Use the Supabase image URL
-        date: new Date() // Ensure date is added for Firebase
-      };
-
-      // Remove imagePreview before saving to Firestore
-      delete newsData.imagePreview;
-
-      if (this.editingNews && this.editingNews.id) {
-        await this.newsService.updateNews(this.editingNews.id, newsData);
-      } else {
-        await this.newsService.addNews(newsData);
-      }
-      
-      this.selectedFile = null;
-      this.closeNewsForm();
-      this.loadNews(); // Refresh the news list
-    } catch (error) {
-      console.error('Error saving news:', error);
-      const alert = await this.alertController.create({
-        header: 'Error',
-        message: 'Failed to save news. Please try again.',
-        buttons: ['OK']
+    if (this.newsForm.valid) {
+      const loading = await this.loadingController.create({
+        message: 'Saving...'
       });
-      await alert.present();
-    } finally {
-      await loading.dismiss();
+      await loading.present();
+
+      try {
+        let imageUrl = '';
+
+        // Jika sedang edit dan ada gambar lama, gunakan URL gambar lama
+        if (this.editingNews && this.editingNews.imageUrl && !this.selectedFile) {
+          imageUrl = this.editingNews.imageUrl;
+        } 
+        // Jika ada file gambar baru yang dipilih, upload gambar baru
+        else if (this.selectedFile) {
+          imageUrl = await this.supabaseService.uploadImage(this.selectedFile);
+          
+          if (!imageUrl) {
+            throw new Error('Image upload failed');
+          }
+        }
+
+        const newsData = {
+          ...this.newsForm.value,
+          imageUrl: imageUrl, // Sekarang akan menggunakan URL lama jika tidak ada gambar baru
+          date: new Date()
+        };
+
+        // Remove imagePreview before saving to Firestore
+        delete newsData.imagePreview;
+
+        if (this.editingNews && this.editingNews.id) {
+          await this.newsService.updateNews(this.editingNews.id, newsData);
+        } else {
+          await this.newsService.addNews(newsData);
+        }
+        
+        this.selectedFile = null;
+        this.closeNewsForm();
+        this.loadNews();
+      } catch (error) {
+        console.error('Error saving news:', error);
+        const alert = await this.alertController.create({
+          header: 'Error',
+          message: 'Failed to save news. Please try again.',
+          buttons: ['OK']
+        });
+        await alert.present();
+      } finally {
+        await loading.dismiss();
+      }
     }
   }
-}
 
   async confirmDelete(news: NewsItem) {
     const alert = await this.alertController.create({

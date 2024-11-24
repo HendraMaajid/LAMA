@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="dismissModal()">Cancel</ion-button>
+    </ion-buttons>
+    <ion-title>Edit Profile</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="saveProfile()" [strong]="true">Save</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="profileForm">
+    <div class="profile-image-container">
+      <ion-avatar class="large-avatar">
+        <img [src]="currentPhotoURL || defaultPhotoURL" (click)="selectImage()">
+      </ion-avatar>
+      <ion-button fill="clear" (click)="selectImage()">
+        <ion-icon name="camera-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  
+    <ion-item>
+      <ion-label position="stacked">Full Name</ion-label>
+      <ion-input formControlName="fullname" type="text"></ion-input>
+    </ion-item>
+  
+    <ion-note color="danger"
+      *ngIf="profileForm.get('fullname')?.touched && profileForm.get('fullname')?.errors?.['required']">
+      Full name is required
+    </ion-note>
+  
+    <ion-item>
+      <ion-label position="stacked">Email</ion-label>
+      <ion-input formControlName="email" type="email" [disabled]="true"></ion-input>
+    </ion-item>
+  </form>
+</ion-content>

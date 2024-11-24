@@ -1,10 +1,12 @@
-// app.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Auth, User } from '@angular/fire/auth';
+import { Auth } from '@angular/fire/auth';
 import { NavigationEnd, Router } from '@angular/router';
-import { AlertController, MenuController } from '@ionic/angular';
-import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { AlertController, MenuController, ModalController } from '@ionic/angular';
+import { Subscription, Observable } from 'rxjs';
+import { filter, switchMap } from 'rxjs/operators';
+import { AuthenticationService, User } from './services/authentication.service';
+import { SupabaseService } from './services/supabase.service';
+import { EditProfilePage } from './components/edit-profile/edit-profile.page';
 
 @Component({
   selector: 'app-root',
@@ -23,65 +25,66 @@ export class AppComponent implements OnInit, OnDestroy {
   ];
   public isLoggedIn = false;
   public userProfile: User | null = null;
-  public defaultPhotoURL = 'assets/wpdandan.jpg'; // Add a default avatar image
+  public defaultPhotoURL = 'assets/wpdandan.jpg';
 
-  private navigationSubscription: Subscription | null = null;
-  private authSubscription: Subscription | null = null;
+  private subscriptions = new Subscription();
 
   constructor(
     private auth: Auth,
     private router: Router,
     private alertCtrl: AlertController,
-    private menuCtrl: MenuController
+    private menuCtrl: MenuController,
+    private modalCtrl: ModalController,
+    private authService: AuthenticationService,
+    private supabaseService: SupabaseService
   ) {}
 
   ngOnInit() {
     console.log('ngOnInit started');
     
-    // Listen to authentication state
-    this.authSubscription = new Subscription();
-    this.authSubscription.add(
-      this.auth.onAuthStateChanged((user) => {
+    // Subscribe to auth state and get Firestore user data
+    this.subscriptions.add(
+      this.auth.onAuthStateChanged((firebaseUser) => {
         console.log('Auth State Changed:', {
-          isUserNull: user === null,
-          userData: {
-            uid: user?.uid,
-            email: user?.email,
-            displayName: user?.displayName,
-            photoURL: user?.photoURL,
-            emailVerified: user?.emailVerified,
-            phoneNumber: user?.phoneNumber,
-            providerData: user?.providerData
-          }
+          isUserNull: firebaseUser === null,
+          firebaseUID: firebaseUser?.uid
         });
 
-        this.isLoggedIn = !!user;
-        this.userProfile = user;
-        
-        // Log detail user profile setelah update
-        console.log('Updated User Profile:', {
-          isLoggedIn: this.isLoggedIn,
-          displayName: this.getUserDisplayName(),
-          photoURL: this.getUserPhotoURL(),
-          actualPhotoURL: user?.photoURL,
-          defaultPhotoURL: this.defaultPhotoURL
-        });
+        this.isLoggedIn = !!firebaseUser;
+
+        if (firebaseUser) {
+          // Get user data from Firestore
+          this.subscriptions.add(
+            this.authService.getUserProfile(firebaseUser.uid).subscribe(
+              (firestoreUser) => {
+                if (firestoreUser) {
+                  this.userProfile = firestoreUser;
+                  console.log('Firestore User Data:', this.userProfile);
+                } else {
+                  console.log('No Firestore user data found');
+                  this.userProfile = null;
+                }
+              },
+              (error) => {
+                console.error('Error fetching Firestore user data:', error);
+                this.userProfile = null;
+              }
+            )
+          );
+        } else {
+          this.userProfile = null;
+        }
       })
     );
   }
 
   ngOnDestroy() {
-    if (this.navigationSubscription) {
-      this.navigationSubscription.unsubscribe();
-    }
-    if (this.authSubscription) {
-      this.authSubscription.unsubscribe();
-    }
+    this.subscriptions.unsubscribe();
   }
 
   // Get user's display name or email
   getUserDisplayName(): string {
-    return this.userProfile?.displayName || this.userProfile?.email?.split('@')[0] || 'Guest';
+    return this.userProfile?.fullname || this.userProfile?.email?.split('@')[0] || 'Guest';
   }
 
   // Get user's profile photo URL or default avatar
@@ -89,7 +92,6 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.userProfile?.photoURL || this.defaultPhotoURL;
   }
 
-  // Fungsi untuk menampilkan konfirmasi logout
   async confirmLogout() {
     const alert = await this.alertCtrl.create({
       header: 'Konfirmasi Logout',
@@ -101,21 +103,55 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         {
           text: 'Logout',
-          handler: () => this.logout(), // Panggil fungsi logout jika dikonfirmasi
+          handler: () => this.logout(),
         },
       ],
     });
     await alert.present();
   }
 
-  // Fungsi untuk logout dari Firebase
   async logout() {
     try {
-      await this.menuCtrl.close(); // Tutup side menu
-      await this.auth.signOut();  // Logout dari Firebase
-      this.router.navigateByUrl('/login', { replaceUrl: true }); // Arahkan ke login
+      await this.menuCtrl.close();
+      await this.authService.logout(); // Using AuthenticationService logout
+      this.router.navigateByUrl('/login', { replaceUrl: true });
     } catch (error) {
       console.error('Error during logout:', error);
+    }
+  }
+
+  async openEditProfile() {
+    const modal = await this.modalCtrl.create({
+      component: EditProfilePage,
+      componentProps: {
+        user: this.userProfile
+      }
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data?.updated) {
+      // Profile was updated, refresh the user data
+      this.refreshUserProfile();
+    }
+  }
+
+  private refreshUserProfile() {
+    if (this.auth.currentUser) {
+      this.authService.getUserProfile(this.auth.currentUser.uid).subscribe(
+        (userData) => {
+          if (userData) {
+            this.userProfile = userData;
+          } else {
+            this.userProfile = null;
+          }
+        },
+        (error) => {
+          console.error('Error fetching user profile:', error);
+          this.userProfile = null;
+        }
+      );
     }
   }
 }

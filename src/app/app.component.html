@@ -6,10 +6,20 @@
         <ion-list id="inbox-list">
           <!-- Updated User Profile Header -->
           <div class="user-profile-header">
-            <ion-avatar class="user-avatar">
-              <img [src]="getUserPhotoURL()" alt="User profile">
-            </ion-avatar>
-            <ion-list-header>{{ getUserDisplayName() }}</ion-list-header>
+            <div class="profile-image-container">
+              <ion-avatar class="user-avatar">
+                <img [src]="getUserPhotoURL()" alt="User profile">
+              </ion-avatar>
+            </div>
+            <ion-list-header>
+              {{ getUserDisplayName() }} 
+              <span>
+                <ion-button *ngIf="isLoggedIn" fill="clear" size="small" (click)="openEditProfile()">
+                  <ion-icon name="pencil-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+            </span>
+
+            </ion-list-header>
             <ion-note>{{ userProfile?.email }}</ion-note>
           </div>
 

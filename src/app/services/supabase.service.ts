@@ -12,29 +12,55 @@ export class SupabaseService {
   );
 
   async uploadImage(file: File): Promise<string> {
-  try {
-    const user = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    try {
+      const user = await this.supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
 
-    const fileName = `news_${Date.now()}_${file.name}`;
-    
-    const { data, error } = await this.supabase.storage
-      .from('news-images')
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+      const fileName = `news_${Date.now()}_${file.name}`;
+      
+      const { data, error } = await this.supabase.storage
+        .from('news-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    const { data: { publicUrl } } = this.supabase.storage
-      .from('news-images')
-      .getPublicUrl(fileName);
+      const { data: { publicUrl } } = this.supabase.storage
+        .from('news-images')
+        .getPublicUrl(fileName);
 
-    return publicUrl;
-  } catch (error) {
-    console.error('Upload error', error);
-    throw error;
+      return publicUrl;
+    } catch (error) {
+      console.error('Upload error', error);
+      throw error;
+    }
   }
-}
+  async uploadImageProfile(file: File): Promise<string> {
+    try {
+      const user = await this.supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const fileName = `profile_${Date.now()}_${file.name}`;
+      
+      const { data, error } = await this.supabase.storage
+        .from('profile-pictures')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = this.supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Upload error', error);
+      throw error;
+    }
+  }
 }

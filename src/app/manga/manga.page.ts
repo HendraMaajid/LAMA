@@ -28,16 +28,22 @@ export class MangaPage implements OnInit {
   ) { }
 
   ngOnInit(): void {
-   this.route.queryParams.subscribe(params => {
-      if (params['genreId']) {
-        this.selectedGenre = parseInt(params['genreId']);
+    this.route.queryParams.subscribe(params => {
+      this.currentPage = params['page'] ? parseInt(params['page'], 10) : 1;
+      this.selectedGenre = params['genreId'] ? parseInt(params['genreId'], 10) : undefined;
+      this.currentSearchQuery = params['searchQuery'] || '';
+
+      if (this.currentSearchQuery) {
+        this.performSearch(this.currentSearchQuery);
+      } else if (this.selectedGenre) {
         this.loadManga();
       } else {
-        this.loadGenres();
-        this.loadPopularManga();
+        this.loadPopularManga(this.currentPage); 
       }
+
+      this.loadGenres();
     });
-    
+
     this.setupSearch();
   }
 
@@ -68,7 +74,7 @@ export class MangaPage implements OnInit {
     if (this.selectedGenre) {
       this.loadManga();
     } else {
-      this.loadPopularManga();
+      this.loadPopularManga(this.currentPage);
     }
   }
 
@@ -106,26 +112,28 @@ export class MangaPage implements OnInit {
         if (this.selectedGenre) {
           this.loadManga();
         } else {
-          this.loadPopularManga();
+          this.loadPopularManga(this.currentPage);
         }
       }
     });
   }
   
-  goToMangaDetail(mangaId: number) {
-    this.router.navigate(['/manga', mangaId]);
-  }
+  goToMangaDetail(animeId: number): void {
+    this.router.navigate(['/manga', animeId], {
+    queryParams: { genreId: this.selectedGenre, page: this.currentPage },
+  });
+}
 
-  private loadPopularManga(): void {
+  private loadPopularManga(page: number): void { // Tambahkan parameter page
     this.isLoading = true;
-    this.mangaService.getPopularManga(this.currentPage).subscribe({
+    this.mangaService.getPopularManga(page).subscribe({ // Asumsi service sudah dimodifikasi
       next: (response) => {
         this.mangaList = response.data;
         this.totalPages = response.pagination?.last_visible_page || 1;
         this.isLoading = false;
       },
       error: (err: Error) => {
-        this.error = 'Gagal memuat data manga populer';
+        this.error = 'Gagal memuat data anime populer';
         this.isLoading = false;
         console.error('Error:', err);
       }
@@ -157,12 +165,25 @@ export class MangaPage implements OnInit {
   changePage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+
+      // Update URL dengan parameter halaman baru
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          page: this.currentPage,
+          genreId: this.selectedGenre || null,
+          searchQuery: this.currentSearchQuery || null
+        },
+        queryParamsHandling: 'merge'
+      });
+
+      // Panggil fungsi yang sesuai dengan state saat ini
       if (this.currentSearchQuery) {
         this.performSearch(this.currentSearchQuery);
       } else if (this.selectedGenre) {
         this.loadManga();
       } else {
-        this.loadPopularManga();
+        this.loadPopularManga(this.currentPage); // Gunakan currentPage
       }
     }
   }

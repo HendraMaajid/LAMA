@@ -74,9 +74,8 @@ export class AnimeService {
 
 
   constructor(private http: HttpClient) { }
-  getPopularAnime(): Observable<any> {
-    let url = `${this.baseUrl}/top/anime`;
-    // Tambahkan parameter untuk mengecualikan genre yang tidak diinginkan
+  getPopularAnime(page: number = 1): Observable<any> {
+    let url = `${this.baseUrl}/top/anime?page=${page}`;
     this.excludedGenres.forEach(genre => {
       url += `${url.includes('?') ? '&' : '?'}genres_exclude=${this.getGenreId(genre)}`;
     });
@@ -119,7 +118,6 @@ export class AnimeService {
     if (genreId) {
       url += `&genres=${genreId}`;
     }
-    // Tambahkan parameter untuk mengecualikan genre yang tidak diinginkan
     this.excludedGenres.forEach(genre => {
       url += `&genres_exclude=${this.getGenreId(genre)}`;
     });

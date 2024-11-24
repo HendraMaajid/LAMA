@@ -30,21 +30,29 @@ export class AnimePage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-      if (params['genreId']) {
-        this.selectedGenre = parseInt(params['genreId']);
+      this.currentPage = params['page'] ? parseInt(params['page'], 10) : 1;
+      this.selectedGenre = params['genreId'] ? parseInt(params['genreId'], 10) : undefined;
+      this.currentSearchQuery = params['searchQuery'] || '';
+
+      if (this.currentSearchQuery) {
+        this.performSearch(this.currentSearchQuery);
+      } else if (this.selectedGenre) {
         this.loadAnime();
       } else {
-        this.loadGenres();
-        this.loadPopularAnime();
+        this.loadPopularAnime(this.currentPage); 
       }
+
+      this.loadGenres();
     });
-    
+
     this.setupSearch();
   }
 
-  private loadPopularAnime(): void {
+
+
+   private loadPopularAnime(page: number): void { // Tambahkan parameter page
     this.isLoading = true;
-    this.animeService.getPopularAnime().subscribe({
+    this.animeService.getPopularAnime(page).subscribe({ // Asumsi service sudah dimodifikasi
       next: (response) => {
         this.animeList = response.data;
         this.totalPages = response.pagination?.last_visible_page || 1;
@@ -90,7 +98,7 @@ export class AnimePage implements OnInit, OnDestroy {
     } else if (this.selectedGenre) {
       this.loadAnime();
     } else {
-      this.loadPopularAnime();
+      this.loadPopularAnime(this.currentPage); 
     }
   }
 
@@ -107,7 +115,7 @@ export class AnimePage implements OnInit, OnDestroy {
         if (this.selectedGenre) {
           this.loadAnime();
         } else {
-          this.loadPopularAnime();
+          this.loadPopularAnime(this.currentPage); 
         }
       }
     });
@@ -153,13 +161,38 @@ export class AnimePage implements OnInit, OnDestroy {
   changePage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
-      this.loadAnime(); // Memuat anime untuk halaman saat ini
+
+      // Update URL dengan parameter halaman baru
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          page: this.currentPage,
+          genreId: this.selectedGenre || null,
+          searchQuery: this.currentSearchQuery || null
+        },
+        queryParamsHandling: 'merge'
+      });
+
+      // Panggil fungsi yang sesuai dengan state saat ini
+      if (this.currentSearchQuery) {
+        this.performSearch(this.currentSearchQuery);
+      } else if (this.selectedGenre) {
+        this.loadAnime();
+      } else {
+        this.loadPopularAnime(this.currentPage); // Gunakan currentPage
+      }
     }
   }
 
-  goToAnimeDetail(animeId: number) {
-    this.router.navigate(['/anime', animeId]);
-  }
+
+
+
+ goToAnimeDetail(animeId: number): void {
+  this.router.navigate(['/anime', animeId], {
+    queryParams: { genreId: this.selectedGenre, page: this.currentPage },
+  });
+}
+
 
   getDisplayedPages(): number[] {
     const pagesToShow = 3; // Jumlah halaman di sekitar halaman aktif

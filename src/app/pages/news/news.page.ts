@@ -1,10 +1,14 @@
 // news.page.ts
 import { Component, OnInit } from '@angular/core';
 import { NewsService, NewsItem } from '../../services/news.service';
+import { AuthenticationService, User } from '../../services/authentication.service';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../../services/supabase.service';
+import { Observable, from, of } from 'rxjs';
+import { switchMap, map, catchError } from 'rxjs/operators';
+
 @Component({
   selector: 'app-news',
   styleUrls: ['./news.page.scss'],
@@ -16,7 +20,8 @@ import { SupabaseService } from '../../services/supabase.service';
         </ion-buttons>
         <ion-title>News</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="openNewsForm()">
+          <!-- Hanya tampilkan tombol tambah jika user memiliki hak akses -->
+          <ion-button *ngIf="canManageNews$ | async" (click)="openNewsForm()">
             <ion-icon name="add"></ion-icon>
           </ion-button>
         </ion-buttons>
@@ -35,8 +40,12 @@ import { SupabaseService } from '../../services/supabase.service';
         <ion-card-content>
           <div [innerHTML]="news.content | slice:0:150"></div>...
         </ion-card-content>
-        <ion-button fill="clear" class="action-button" color="primary" (click)="openNewsForm(news); $event.stopPropagation()">Edit</ion-button>
-        <ion-button fill="clear" class="action-button" color="danger" (click)="confirmDelete(news); $event.stopPropagation()">Hapus</ion-button>
+        
+        <!-- Tombol edit dan delete hanya muncul untuk user dengan hak akses -->
+        <ng-container *ngIf="canManageNews$ | async">
+          <ion-button fill="clear" class="action-button" color="primary" (click)="openNewsForm(news); $event.stopPropagation()">Edit</ion-button>
+          <ion-button fill="clear" class="action-button" color="danger" (click)="confirmDelete(news); $event.stopPropagation()">Hapus</ion-button>
+        </ng-container>
       </ion-card>
 
       <!-- Form Modal -->
@@ -90,6 +99,7 @@ import { SupabaseService } from '../../services/supabase.service';
 })
 export class NewsPage implements OnInit {
   newsList: NewsItem[] = [];
+  canManageNews$: Observable<boolean>;
   newsForm: FormGroup;
   isModalOpen = false;
   selectedFile: File | null = null;
@@ -115,6 +125,7 @@ export class NewsPage implements OnInit {
 
   constructor(
     private newsService: NewsService,
+    private authService: AuthenticationService,
     private fb: FormBuilder,
     private alertController: AlertController,
     private supabaseService: SupabaseService,
@@ -128,6 +139,13 @@ export class NewsPage implements OnInit {
       imagePreview: [''],  // Tambahkan ini
       category: ['', Validators.required]
     });
+    this.canManageNews$ = from(this.authService.getProfile()).pipe(
+      switchMap(profileObservable => profileObservable ? profileObservable : of(null)),
+      map(profile => {
+        return profile?.role === 'admin';
+      }),
+      catchError(() => of(false))
+    );
   }
 
   ngOnInit() {

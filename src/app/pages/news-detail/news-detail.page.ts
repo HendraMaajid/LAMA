@@ -16,7 +16,7 @@ import { LoadingController } from '@ionic/angular';
       </ion-toolbar>
     </ion-header>
 
-    <ion-content color="dark">
+    <ion-content>
       <ion-card *ngIf="newsItem">
         <img [src]="newsItem.imageUrl" [alt]="newsItem.title"/>
         

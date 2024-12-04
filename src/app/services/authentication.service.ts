@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
+import { Observable } from 'rxjs';
 
 export interface User {
   uid: string;
@@ -12,7 +13,6 @@ export interface User {
   createdAt: Date;
   lastLoginAt?: Date;
   role?: string;
-  // Tambahkan field lain sesuai kebutuhan
 }
 
 @Injectable({
@@ -24,6 +24,15 @@ export class AuthenticationService {
     private firestore: AngularFirestore
   ) { }
 
+  // Public method to get authentication state
+  getAuthState(): Observable<firebase.User | null> {
+    return this.afAuth.authState;
+  }
+
+  // Public method to get current user
+  async getCurrentUser(): Promise<firebase.User | null> {
+    return this.afAuth.currentUser;
+  }
   // Modifikasi method registerUser untuk menyimpan data user
   async registerUser(email: string, password: string, fullname: string): Promise<any> {
     try {

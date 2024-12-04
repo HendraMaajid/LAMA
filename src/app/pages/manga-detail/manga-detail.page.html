@@ -36,6 +36,9 @@
             <ion-segment-button value="characters">
                 <ion-label>Characters</ion-label>
             </ion-segment-button>
+            <ion-segment-button value="forum">
+                <ion-label>Forum</ion-label>
+            </ion-segment-button>
         </ion-segment>
 
         <!-- Info Content -->
@@ -94,6 +97,105 @@
                 </ion-row>
             </ion-grid>
         </div>
+    </div>
+
+    <!-- Forum Section -->
+    <div *ngIf="selectedSegment === 'forum'" class="ion-padding">
+        <!-- Forum Post Input -->
+        <div class="forum-input-container" *ngIf="isUserLoggedIn">
+            <ion-textarea [(ngModel)]="newPostContent" placeholder="Share your thoughts about this manga..."
+                rows="3"></ion-textarea>
+            <ion-button expand="block" (click)="createForumPost()" [disabled]="!newPostContent.trim()">
+                Post Comment
+            </ion-button>
+        </div>
+    
+        <!-- Login Prompt for Non-Logged Users -->
+        <div *ngIf="!isUserLoggedIn" class="ion-text-center ion-padding">
+            <ion-text color="medium">
+                <p>Please login to participate in the discussion</p>
+            </ion-text>
+            <ion-button (click)="showLoginPrompt()" expand="block" fill="outline">
+                Login
+            </ion-button>
+        </div>
+    
+        <!-- Forum Posts List -->
+        <ion-list>
+            <ion-item-group *ngFor="let post of forumPosts">
+                <!-- Main Post -->
+                <ion-item>
+                    <ion-avatar slot="start">
+                        <img [src]="post.userPhotoURL || '/assets/default-avatar.png'">
+                    </ion-avatar>
+                    <ion-label>
+                        <h2>{{ post.username }}</h2>
+                        <p style="font-size: 17px;">{{ post.content }}</p>
+                        <p style="font-size: 12px;">{{ post.createdAt.toDate() | date:'medium' }}</p>
+                    </ion-label>
+                    <ion-buttons slot="end">
+                        <ion-button (click)="toggleReplies(post.id!)">
+                            <span class="reply-count" *ngIf="postReplies.get(post.id!)?.length">
+                                {{ postReplies.get(post.id!)?.length }}
+                            </span>
+                            <ion-icon [name]="showReplies.get(post.id!) ? 'chevron-up-outline' : 'chevron-down-outline'">
+                            </ion-icon>
+                        </ion-button>
+                        <ng-container *ngIf="post.userId === (currentUserId$ | async)">
+                            <ion-button (click)="showEditDialog(post)">
+                                <ion-icon name="create-outline"></ion-icon>
+                            </ion-button>
+                            <ion-button (click)="deleteForumPost(post.id!)">
+                                <ion-icon name="trash-outline"></ion-icon>
+                            </ion-button>
+                        </ng-container>
+                    </ion-buttons>
+                </ion-item>
+    
+                <!-- Replies Section -->
+                <div *ngIf="showReplies.get(post.id!)" class="replies-section">
+                    <!-- Reply Input -->
+                    <ion-item *ngIf="isUserLoggedIn" lines="none" class="reply-input">
+                        <ion-input [ngModel]="replyContents.get(post.id!) || ''"
+                            (ngModelChange)="replyContents.set(post.id!, $event)" placeholder="Write a reply..."
+                            class="custom-input">
+                        </ion-input>
+                        <ion-button slot="end" (click)="createReply(post.id!)"
+                            [disabled]="!(replyContents.get(post.id!)?.trim())">
+                            Reply
+                        </ion-button>
+                    </ion-item>
+    
+                    <!-- Replies List -->
+                    <ion-item *ngFor="let reply of postReplies.get(post.id!)" class="reply-item">
+                        <ion-avatar slot="start">
+                            <img [src]="reply.userPhotoURL || '/assets/default-avatar.png'" class="small-avatar">
+                        </ion-avatar>
+                        <ion-label>
+                            <h3>{{ reply.username }}</h3>
+                            <p>{{ reply.content }}</p>
+                            <ion-note>{{ reply.createdAt.toDate() | date:'medium' }}</ion-note>
+                        </ion-label>
+                        <ion-button slot="end" fill="clear" *ngIf="reply.userId === (currentUserId$ | async)"
+                            (click)="deleteReply(post.id!, reply.id!)">
+                            <ion-icon name="trash-outline" color="danger"></ion-icon>
+                        </ion-button>
+                    </ion-item>
+    
+                    <!-- No Replies Message -->
+                    <ion-item *ngIf="postReplies.get(post.id!)?.length === 0" lines="none">
+                        <ion-label class="ion-text-center">
+                            <ion-text color="medium">No replies yet</ion-text>
+                        </ion-label>
+                    </ion-item>
+                </div>
+            </ion-item-group>
+        </ion-list>
+    
+        <!-- No Posts Message -->
+        <ion-text color="medium" *ngIf="forumPosts.length === 0" class="ion-text-center">
+            <p>No comments yet. Be the first to start a discussion!</p>
+        </ion-text>
     </div>
 
     <ion-text color="danger" *ngIf="error">

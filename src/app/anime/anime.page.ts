@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { IonContent } from '@ionic/angular';  // Add this import
 import { ActivatedRoute, Router } from '@angular/router';
 import { AnimeService } from '../services/anime.service';
 import { Subject, Subscription } from 'rxjs';
@@ -10,6 +11,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
   styleUrls: ['./anime.page.scss'],
 })
 export class AnimePage implements OnInit, OnDestroy {
+  @ViewChild(IonContent) content?: IonContent;
   animeList: any[] = [];
   genres: any[] = [];
   selectedGenre?: number;
@@ -57,6 +59,7 @@ export class AnimePage implements OnInit, OnDestroy {
         this.animeList = response.data;
         this.totalPages = response.pagination?.last_visible_page || 1;
         this.isLoading = false;
+         this.content?.scrollToTop(0); // Tambahkan ini setelah data dimuat
       },
       error: (err: Error) => {
         this.error = 'Gagal memuat data anime populer';
@@ -128,6 +131,7 @@ export class AnimePage implements OnInit, OnDestroy {
         this.animeList = response.data;
         this.totalPages = response.pagination?.last_visible_page || 1;
         this.isLoading = false;
+         this.content?.scrollToTop(0); // Tambahkan ini setelah data dimuat
       },
       error: (err: Error) => {
         this.error = 'Gagal memuat data anime';
@@ -149,6 +153,7 @@ export class AnimePage implements OnInit, OnDestroy {
         this.animeList = response.data;
         this.totalPages = response.pagination?.last_visible_page || 1;
         this.isLoading = false;
+        this.content?.scrollToTop(0); // Tambahkan ini setelah data dimuat
       },
       error: (err: Error) => {
         this.error = 'Gagal mencari anime';
@@ -173,13 +178,16 @@ export class AnimePage implements OnInit, OnDestroy {
         queryParamsHandling: 'merge'
       });
 
+      // Scroll to top before loading new content
+      this.content?.scrollToTop(100); // 500ms animation duration
+
       // Panggil fungsi yang sesuai dengan state saat ini
       if (this.currentSearchQuery) {
         this.performSearch(this.currentSearchQuery);
       } else if (this.selectedGenre) {
         this.loadAnime();
       } else {
-        this.loadPopularAnime(this.currentPage); // Gunakan currentPage
+        this.loadPopularAnime(this.currentPage);
       }
     }
   }

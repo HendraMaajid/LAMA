@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { IonContent } from '@ionic/angular';  // Add this import
 import { ActivatedRoute, Router } from '@angular/router';
 import { MangaService } from '../services/manga.service';
 import { Subject, Subscription } from 'rxjs';
@@ -8,7 +9,8 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
   templateUrl: './manga.page.html',
   styleUrls: ['./manga.page.scss'],
 })
-export class MangaPage implements OnInit {
+export class MangaPage implements OnInit, OnDestroy {
+  @ViewChild(IonContent) content?: IonContent;
   mangaList: any[] = [];
   genres: any[] = [];
   selectedGenre?: number;
@@ -45,6 +47,9 @@ export class MangaPage implements OnInit {
     });
 
     this.setupSearch();
+  }
+  ngOnDestroy(): void {
+    this.searchSubscription?.unsubscribe();
   }
 
  private loadGenres(): void {
@@ -85,6 +90,7 @@ export class MangaPage implements OnInit {
         this.mangaList = response.data;
         this.totalPages = response.pagination?.last_visible_page || 1;
         this.isLoading = false;
+        this.content?.scrollToTop(0);
       },
       error: (err: Error) => {
         this.error = 'Gagal memuat data manga';
@@ -94,9 +100,6 @@ export class MangaPage implements OnInit {
     });
   }
 
-  ngOnDestroy(): void {
-    this.searchSubscription?.unsubscribe();
-  }
 
   private setupSearch(): void {
     this.searchSubscription = this.searchSubject.pipe(
@@ -131,6 +134,7 @@ export class MangaPage implements OnInit {
         this.mangaList = response.data;
         this.totalPages = response.pagination?.last_visible_page || 1;
         this.isLoading = false;
+        this.content?.scrollToTop(0);
       },
       error: (err: Error) => {
         this.error = 'Gagal memuat data anime populer';
@@ -153,6 +157,7 @@ export class MangaPage implements OnInit {
         this.mangaList = response.data;
         this.totalPages = response.pagination?.last_visible_page || 1;
         this.isLoading = false;
+        this.content?.scrollToTop(0);
       },
       error: (err: Error) => {
         this.error = 'Gagal mencari manga';
@@ -177,6 +182,7 @@ export class MangaPage implements OnInit {
         queryParamsHandling: 'merge'
       });
 
+      this.content?.scrollToTop(500); // 500ms animation duration
       // Panggil fungsi yang sesuai dengan state saat ini
       if (this.currentSearchQuery) {
         this.performSearch(this.currentSearchQuery);

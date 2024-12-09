@@ -1,4 +1,3 @@
-// src/app/services/anime.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, map } from 'rxjs';
@@ -55,7 +54,21 @@ interface CharactersResponse {
   }>;
 }
 
-
+interface AnimeResponse {
+  data: Array<{
+    mal_id: number;
+    title: string;
+    genres: Array<{
+      mal_id: number;
+      name: string;
+    }>;
+  }>;
+  pagination: {
+    last_visible_page: number;
+    has_next_page: boolean;
+    current_page: number;
+  };
+}
 
 @Injectable({
   providedIn: 'root'
@@ -63,7 +76,7 @@ interface CharactersResponse {
 export class AnimeService {
   private baseUrl = 'https://api.jikan.moe/v4';
 
-   private excludedGenres = [
+  private excludedGenres = [
     'Erotica',
     'Hentai',
     'Boys Love',
@@ -72,82 +85,105 @@ export class AnimeService {
     'Magical Sex Shift'
   ];
 
-
   constructor(private http: HttpClient) { }
+
+  private buildUrlWithExcludedGenres(baseUrl: string): string {
+    let url = baseUrl;
+    const excludedGenreIds = this.excludedGenres.map(genre => this.getGenreId(genre));
+    
+    excludedGenreIds.forEach(genreId => {
+      if (genreId > 0) {
+        url += `${url.includes('?') ? '&' : '?'}genres_exclude=${genreId}`;
+      }
+    });
+    return url;
+  }
+
   getPopularAnime(page: number = 1): Observable<any> {
-    let url = `${this.baseUrl}/top/anime?page=${page}`;
-    this.excludedGenres.forEach(genre => {
-      url += `${url.includes('?') ? '&' : '?'}genres_exclude=${this.getGenreId(genre)}`;
-    });
-    return this.http.get(url);
+    const baseUrl = `${this.baseUrl}/top/anime?page=${page}`;
+    return this.http.get(this.buildUrlWithExcludedGenres(baseUrl));
   }
+
   getSeasonsAnime(): Observable<any> {
-    let url = `${this.baseUrl}/seasons/now`;
-    // Tambahkan parameter untuk mengecualikan genre yang tidak diinginkan
-    this.excludedGenres.forEach(genre => {
-      url += `${url.includes('?') ? '&' : '?'}genres_exclude=${this.getGenreId(genre)}`;
-    });
-    return this.http.get(url);
+    const baseUrl = `${this.baseUrl}/seasons/now`;
+    return this.http.get(this.buildUrlWithExcludedGenres(baseUrl));
   }
+
   getAnimeDetails(id: number): Observable<AnimeDetail> {
-    return this.http.get<AnimeDetail>(`${this.baseUrl}/anime/${id}/full`);
+    return this.http.get<AnimeDetail>(`${this.baseUrl}/anime/${id}/full`).pipe(
+      map(response => {
+        const hasExcludedGenre = response.data.genres.some(genre => 
+          this.excludedGenres.includes(genre.name)
+        );
+        if (hasExcludedGenre) {
+          throw new Error('Anime contains excluded genre');
+        }
+        return response;
+      })
+    );
   }
 
   getAnimeCharacters(id: number): Observable<CharactersResponse> {
     return this.http.get<CharactersResponse>(`${this.baseUrl}/anime/${id}/characters`);
   }
+
   getAnimeEpisodes(id: number): Observable<any> {
     return this.http.get(`${this.baseUrl}/anime/${id}/episodes`);
   }
+
   getAnimeEpisodesbyId(id: number, episodes: number): Observable<any> {
     return this.http.get(`${this.baseUrl}/anime/${id}/episodes/${episodes}`);
   }
-   getGenres(): Observable<{ data: AnimeGenre[] }> {
+
+  getGenres(): Observable<{ data: AnimeGenre[] }> {
     return this.http.get<{ data: AnimeGenre[] }>(`${this.baseUrl}/genres/anime`).pipe(
       map(response => ({
         data: response.data
           .filter(genre => !this.excludedGenres.includes(genre.name))
-          .sort((a, b) => a.name.localeCompare(b.name)) // Mengurutkan berdasarkan nama
+          .sort((a, b) => a.name.localeCompare(b.name))
       }))
     );
   }
 
-
   getAnime(genreId?: number, page: number = 1): Observable<any> {
-    let url = `${this.baseUrl}/anime?page=${page}`;
+    let baseUrl = `${this.baseUrl}/anime?page=${page}`;
     if (genreId) {
-      url += `&genres=${genreId}`;
+      baseUrl += `&genres=${genreId}`;
     }
-    this.excludedGenres.forEach(genre => {
-      url += `&genres_exclude=${this.getGenreId(genre)}`;
-    });
-    return this.http.get(url);
+    return this.http.get(this.buildUrlWithExcludedGenres(baseUrl));
   }
 
-
-  searchAnime(query: string, genreId?: number, page: number = 1): Observable<any> {
-    let url = `${this.baseUrl}/anime?q=${query}&page=${page}`;
+  searchAnime(query: string, genreId?: number, page: number = 1): Observable<AnimeResponse> {
+    let baseUrl = `${this.baseUrl}/anime?q=${query}&page=${page}`;
     if (genreId) {
-      url += `&genres=${genreId}`;
+      baseUrl += `&genres=${genreId}`;
     }
-    // Tambahkan parameter untuk mengecualikan genre yang tidak diinginkan
-    this.excludedGenres.forEach(genre => {
-      url += `&genres_exclude=${this.getGenreId(genre)}`;
-    });
-    return this.http.get(url);
+    
+    const url = this.buildUrlWithExcludedGenres(baseUrl);
+    
+    return this.http.get<AnimeResponse>(url).pipe(
+      map((response: AnimeResponse) => {
+        if (!response.data) return response;
+        
+        response.data = response.data.filter((anime) => {
+          const animeGenres: string[] = anime.genres.map(g => g.name);
+          return !animeGenres.some((genre: string) => this.excludedGenres.includes(genre));
+        });
+        
+        return response;
+      })
+    );
   }
+
   private getGenreId(genreName: string): number {
-    // Mapping genre names to their MAL IDs
     const genreMap: { [key: string]: number } = {
-      'Erotica' : 49,
-      'Hentai' : 12,
-      'Boys Love' : 28,
-      'Girls Love' : 26,
-      'Adult Cast' : 50,
-      'Magical Sex Shift' : 65
+      'Erotica': 49,
+      'Hentai': 12,
+      'Boys Love': 28,
+      'Girls Love': 26,
+      'Adult Cast': 50,
+      'Magical Sex Shift': 65
     };
     return genreMap[genreName] || 0;
   }
-
-
 }

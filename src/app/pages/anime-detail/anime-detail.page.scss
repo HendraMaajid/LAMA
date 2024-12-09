@@ -131,3 +131,21 @@ ion-card-content {
     color: var(--ion-color-medium);
     
 }
+.bookmark-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+
+    &.active {
+        /* Membesar sedikit ketika aktif /
+      color: var(--ion-color-warning);
+    }
+
+    &:hover {
+      transform: scale(1.1); / Sedikit membesar saat hover */
+    }
+}

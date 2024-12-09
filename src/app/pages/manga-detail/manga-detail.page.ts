@@ -6,7 +6,7 @@ import { ForumMangaService, ForumPost, Reply } from '../../services/forum.manga.
 import { LoadingController, ModalController, AlertController, ToastController } from '@ionic/angular';
 import { AuthenticationService } from '../../services/authentication.service';
 import { switchMap } from 'rxjs/operators';
-
+import { BookmarkService } from '../../services/bookmark.service';
 
 @Component({
   selector: 'app-manga-detail',
@@ -29,6 +29,7 @@ export class MangaDetailPage implements OnInit {
   postReplies: Map<string, Reply[]> = new Map();
   replyContents: Map<string, string> = new Map();
   showReplies: Map<string, boolean> = new Map();
+  isBookmarked = false;
 
  constructor(
     private route: ActivatedRoute,
@@ -39,7 +40,8 @@ export class MangaDetailPage implements OnInit {
     private loadingController: LoadingController,
     private modalController: ModalController,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private bookmarkService: BookmarkService
   ) { }
 
   ngOnInit() {
@@ -47,6 +49,7 @@ export class MangaDetailPage implements OnInit {
     if (mangaId) {
       const parsedId = parseInt(mangaId, 10);
       this.loadMangaDetails(parseInt(mangaId));
+      this.checkBookmarkStatus(parsedId);
 
       // Ganti bagian ini
       this.authService.getAuthState().pipe(
@@ -107,7 +110,7 @@ export class MangaDetailPage implements OnInit {
   }
 
   
-  navigateToAnimeList(genre: any) {
+  navigateToMangaList(genre: any) {
     // Navigasi ke halaman manga list dengan parameter genre
     this.router.navigate(['/manga'], {
       queryParams: {
@@ -377,4 +380,52 @@ async deleteForumPost(postId: string) {
 
     await alert.present();
   }
+ async checkBookmarkStatus(mangaId: number) {
+  this.isBookmarked = await this.bookmarkService.isBookmarked('manga', mangaId);
+}
+
+// Update toggleBookmark method
+async toggleBookmark() {
+  try {
+    const mangaId = parseInt(this.route.snapshot.paramMap.get('id')!, 10);
+    
+    if (this.isBookmarked) {
+      await this.bookmarkService.removeBookmark('manga', mangaId);
+      this.isBookmarked = false;
+      
+      const toast = await this.toastController.create({
+        message: 'Removed from bookmarks',
+        duration: 2000,
+        position: 'top',
+        color: 'success'
+      });
+      await toast.present();
+    } else {
+      await this.bookmarkService.addBookmark({
+        mangaId: mangaId,
+        type: 'manga',
+        title: this.mangaDetails.title,
+        imageUrl: this.mangaDetails.images.webp.large_image_url
+      });
+      this.isBookmarked = true;
+      
+      const toast = await this.toastController.create({
+        message: 'Added to bookmarks',
+        duration: 2000,
+        position: 'top',
+        color: 'success'
+      });
+      await toast.present();
+    }
+  } catch (error) {
+    console.error('Error toggling bookmark:', error);
+    const toast = await this.toastController.create({
+      message: 'Failed to update bookmark',
+      duration: 2000,
+      position: 'top',
+      color: 'danger'
+    });
+    await toast.present();
+  }
+}
 }

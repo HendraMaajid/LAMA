@@ -19,8 +19,7 @@ export class AppComponent implements OnInit, OnDestroy {
     { title: 'Manga', url: '/manga', icon: 'book' }
   ];
   public authenticatedPages: Array<{ title: string; url: string; icon: string }> = [
-    { title: 'Profile', url: '/folder/profile', icon: 'person' },
-    { title: 'Bookmark', url: '/folder/bookmark', icon: 'bookmark' },
+    { title: 'Bookmark', url: '/bookmarks', icon: 'bookmark' },
     { title: 'News', url: '/news', icon: 'newspaper' }
   ];
   public isLoggedIn = false;

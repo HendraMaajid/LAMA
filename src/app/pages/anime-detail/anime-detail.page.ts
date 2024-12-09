@@ -7,6 +7,7 @@ import { LoadingController, ModalController, AlertController, ToastController } 
 import { AuthenticationService } from '../../services/authentication.service';
 import { switchMap } from 'rxjs/operators';
 import { EpisodeDetailComponent } from './episode-detail.component'; // Import this
+import { BookmarkService } from '../../services/bookmark.service';
 
 @Component({
   selector: 'app-anime-detail',
@@ -29,6 +30,7 @@ export class AnimeDetailPage implements OnInit {
   postReplies: Map<string, Reply[]> = new Map();
   replyContents: Map<string, string> = new Map();
   showReplies: Map<string, boolean> = new Map();
+  isBookmarked = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -39,15 +41,17 @@ export class AnimeDetailPage implements OnInit {
     private loadingController: LoadingController,
     private modalController: ModalController,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private bookmarkService: BookmarkService
   ) { }
 
   ngOnInit() {
     const animeId = this.route.snapshot.paramMap.get('id');
-    if (animeId) {
-      const parsedId = parseInt(animeId, 10);
-      this.loadAnimeDetails(parsedId);
-      this.animeEpisodes(parsedId);
+     if (animeId) {
+    const parsedId = parseInt(animeId, 10);
+    this.loadAnimeDetails(parsedId);
+    this.animeEpisodes(parsedId);
+    this.checkBookmarkStatus(parsedId);
       
       // Ganti bagian ini
       this.authService.getAuthState().pipe(
@@ -412,5 +416,52 @@ async deleteForumPost(postId: string) {
     });
 
     await alert.present();
+  }
+  
+  async checkBookmarkStatus(animeId: number) {
+    this.isBookmarked = await this.bookmarkService.isBookmarked('anime', animeId);
+  }
+  async toggleBookmark() {
+    try {
+      const animeId = parseInt(this.route.snapshot.paramMap.get('id')!, 10);
+      
+      if (this.isBookmarked) {
+        await this.bookmarkService.removeBookmark('anime', animeId);
+        this.isBookmarked = false;
+        
+        const toast = await this.toastController.create({
+          message: 'Removed from bookmarks',
+          duration: 2000,
+          position: 'top',
+          color: 'success'
+        });
+        await toast.present();
+      } else {
+        await this.bookmarkService.addBookmark({
+          animeId: animeId,
+          type: 'anime',
+          title: this.animeDetails.title,
+          imageUrl: this.animeDetails.images.webp.large_image_url
+        });
+        this.isBookmarked = true;
+        
+        const toast = await this.toastController.create({
+          message: 'Added to bookmarks',
+          duration: 2000,
+          position: 'top',
+          color: 'success'
+        });
+        await toast.present();
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+      const toast = await this.toastController.create({
+        message: 'Failed to update bookmark',
+        duration: 2000,
+        position: 'top',
+        color: 'danger'
+      });
+      await toast.present();
+    }
   }
 }

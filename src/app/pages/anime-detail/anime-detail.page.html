@@ -15,6 +15,10 @@
             <img [src]="animeDetails.images.webp.large_image_url" [alt]="animeDetails.title" class="cover-image">
             <div class="basic-info ion-padding">
                 <h1>{{ animeDetails.title }}</h1>
+                <button class="bookmark-button" [class.active]="isBookmarked" (click)="toggleBookmark()">
+                    <ion-icon [name]="isBookmarked ? 'bookmark' : 'bookmark-outline'" aria-hidden="true" size="large"
+                        color="warning"></ion-icon>
+                </button>
                 <p><strong>Score:</strong> {{ animeDetails.score }}/10</p>
                 <p><strong>Episodes:</strong> {{ animeDetails.episodes }}</p>
                 <p><strong>Status:</strong> {{ animeDetails.status }}</p>

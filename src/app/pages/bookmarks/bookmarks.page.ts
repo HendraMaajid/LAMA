@@ -39,13 +39,29 @@ import { Router } from '@angular/router';
           <ion-label>
             <h2>{{ bookmark.title }}</h2>
             <p>{{ bookmark.type | titlecase }}</p>
+            <p *ngIf="bookmark.type === 'anime'">
+              Episode: {{ bookmark.currentEpisode }}/{{ bookmark.totalEpisodes || '?' }}
+            </p>
+            <p *ngIf="bookmark.type === 'manga'">
+              Chapter: {{ bookmark.currentChapter }}/{{ bookmark.totalChapters || '?' }}
+            </p>
+            <p class="text-small">
+              Last updated: {{ bookmark.lastUpdated | date:'short' }}
+            </p>
           </ion-label>
+          
+          <!-- Progress Update Button -->
+          <ion-button slot="end" fill="clear" (click)="updateProgress(bookmark); $event.stopPropagation()">
+            <ion-icon name="add-circle-outline"></ion-icon>
+          </ion-button>
+          
+          <!-- Delete Button -->
           <ion-button slot="end" fill="clear" (click)="confirmDelete(bookmark); $event.stopPropagation()">
             <ion-icon name="trash-outline" color="danger"></ion-icon>
           </ion-button>
         </ion-item>
 
-        <!-- No bookmarks message -->
+        <!-- ... existing no bookmarks message ... -->
         <ion-item *ngIf="(bookmarks$ | async)?.length === 0" lines="none">
           <ion-label class="ion-text-center">
             <p>No bookmarks found</p>
@@ -155,5 +171,59 @@ export class BookmarksPage implements OnInit {
       });
       await toast.present();
     }
+  }
+  async updateProgress(bookmark: Bookmark) {
+    const alert = await this.alertController.create({
+      header: `Update ${bookmark.type === 'anime' ? 'Episode' : 'Chapter'}`,
+      inputs: [
+        {
+          name: 'progress',
+          type: 'number',
+          placeholder: `Current ${bookmark.type === 'anime' ? 'episode' : 'chapter'}`,
+          value: bookmark.type === 'anime' ? bookmark.currentEpisode : bookmark.currentChapter
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Update',
+          handler: async (data) => {
+            try {
+              const progress = parseInt(data.progress);
+              if (isNaN(progress) || progress < 0) {
+                throw new Error('Invalid progress value');
+              }
+
+              await this.bookmarkService.updateProgress(
+                bookmark.type,
+                bookmark.type === 'anime' ? bookmark.animeId! : bookmark.mangaId!,
+                progress
+              );
+
+              const toast = await this.toastController.create({
+                message: 'Progress updated successfully',
+                duration: 2000,
+                position: 'top',
+                color: 'success'
+              });
+              await toast.present();
+            } catch (error) {
+              const toast = await this.toastController.create({
+                message: 'Failed to update progress',
+                duration: 2000,
+                position: 'top',
+                color: 'danger'
+              });
+              await toast.present();
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 }

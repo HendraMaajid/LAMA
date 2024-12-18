@@ -52,6 +52,11 @@ export class AnimeDetailPage implements OnInit {
     this.loadAnimeDetails(parsedId);
     this.animeEpisodes(parsedId);
     this.checkBookmarkStatus(parsedId);
+
+    this.authService.getAuthState().subscribe(user => {
+      this.isUserLoggedIn = !!user;
+      this.checkBookmarkStatus(parsedId);
+    });
       
       // Ganti bagian ini
       this.authService.getAuthState().pipe(
@@ -200,7 +205,7 @@ export class AnimeDetailPage implements OnInit {
   async showLoginPrompt() {
     const alert = await this.alertController.create({
       header: 'Login Required',
-      message: 'Please login to post a comment',
+      message: 'Please login to use bookmark and forum',
       buttons: [
         {
           text: 'Cancel',
@@ -419,9 +424,19 @@ async deleteForumPost(postId: string) {
   }
   
   async checkBookmarkStatus(animeId: number) {
-    this.isBookmarked = await this.bookmarkService.isBookmarked('anime', animeId);
+    if (this.isUserLoggedIn) {
+      this.isBookmarked = await this.bookmarkService.isBookmarked('anime', animeId);
+    } else {
+      this.isBookmarked = false;
+    }
   }
+
   async toggleBookmark() {
+    if (!this.isUserLoggedIn) {
+      await this.showLoginPrompt();
+      return;
+    }
+
     try {
       const animeId = parseInt(this.route.snapshot.paramMap.get('id')!, 10);
       

@@ -51,6 +51,11 @@ export class MangaDetailPage implements OnInit {
       this.loadMangaDetails(parseInt(mangaId));
       this.checkBookmarkStatus(parsedId);
 
+      this.authService.getAuthState().subscribe(user => {
+        this.isUserLoggedIn = !!user;
+        this.checkBookmarkStatus(parsedId);
+      });
+
       // Ganti bagian ini
       this.authService.getAuthState().pipe(
         switchMap(user => {
@@ -163,7 +168,7 @@ export class MangaDetailPage implements OnInit {
   async showLoginPrompt() {
     const alert = await this.alertController.create({
       header: 'Login Required',
-      message: 'Please login to post a comment',
+      message: 'Please login to use bookmark and forum',
       buttons: [
         {
           text: 'Cancel',
@@ -380,12 +385,21 @@ async deleteForumPost(postId: string) {
 
     await alert.present();
   }
- async checkBookmarkStatus(mangaId: number) {
-  this.isBookmarked = await this.bookmarkService.isBookmarked('manga', mangaId);
+
+async checkBookmarkStatus(mangaId: number) {
+  if (this.isUserLoggedIn) {
+    this.isBookmarked = await this.bookmarkService.isBookmarked('manga', mangaId);
+  } else {
+    this.isBookmarked = false;
+  }
 }
 
 // Update toggleBookmark method
 async toggleBookmark() {
+   if (!this.isUserLoggedIn) {
+    await this.showLoginPrompt();
+    return;
+  }
   try {
     const mangaId = parseInt(this.route.snapshot.paramMap.get('id')!, 10);
     
